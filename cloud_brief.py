@@ -454,10 +454,11 @@ def ping_summary(cards, fg, events):
     bits.append("high-impact: " + (", ".join(f"{t:%H:%M} {ti}" for t, ti in his[:2])
                                    if his else "none"))
     msg = " | ".join(bits)
+    title = ("Morning market brief (backup)" if os.environ.get("BACKUP")
+             else "Morning market brief")
     try:
         requests.post(f"https://ntfy.sh/{TOPIC}", data=msg.encode(),
-                      headers={"Title": "Morning market brief",
-                               "Click": PAGE_URL}, timeout=15)
+                      headers={"Title": title, "Click": PAGE_URL}, timeout=15)
         print("ping sent:", msg)
     except Exception as e:
         print("ping failed:", e)
