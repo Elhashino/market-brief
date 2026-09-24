@@ -464,8 +464,20 @@ def ping_summary(cards, fg, events):
         print("ping failed:", e)
 
 
+def brief_already_sent() -> bool:
+    """True if a morning brief already reached the channel in the last 10h."""
+    try:
+        r = requests.get(f"https://ntfy.sh/{TOPIC}/json?poll=1&since=10h", timeout=20)
+        return "Morning market brief" in r.text
+    except Exception:
+        return False
+
+
 def main():
     now = datetime.now(UK)
+    if os.environ.get("FORCE") != "1" and brief_already_sent():
+        print("brief already on the channel today - standing down")
+        return
     print(f"MARKET CONTEXT — {now:%A %d %b %Y, %H:%M} UK\n")
     allev = fetch_events()
     events = [e for e in allev if e[0].date() == now.date()]
