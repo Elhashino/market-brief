@@ -297,6 +297,44 @@ def next_session(cards, nxt_ev):
             f"permission and energy, never direction.</div></div>")
 
 
+def attention(m, evs):
+    """0-100 attention score from the validated ingredients + reason parts."""
+    parts = []
+    s = min(m["volx"], 2.0) / 2.0 * 40 if not pd.isna(m["volx"]) else 20
+    if not pd.isna(m["volx"]):
+        parts.append(f"yesterday {m['volx']:.2f}x range")
+    if m["trend"] != 0:
+        s += 20
+        parts.append(("long" if m["trend"] > 0 else "short") + " side permitted")
+    else:
+        parts.append("no side permitted")
+    his = [t for t, imp, _ in evs if imp == "High"]
+    if his:
+        s += 25
+        parts.append(f"high-impact news {min(his):%H:%M} UK")
+    if m["rsi"] >= 70 or m["rsi"] <= 30:
+        s += 15
+        parts.append("stretched — violence risk")
+    s = min(round(s), 100)
+    label = "PRIME" if s >= 65 else "WORTH WATCHING" if s >= 45 else "LOW INTEREST"
+    return s, label, " · ".join(parts)
+
+
+def ranking_html(cards):
+    scored = sorted(((attention(m, evs), n) for n, m, evs in cards),
+                    key=lambda x: -x[0][0])
+    rows = ""
+    for i, ((s, lab, why), n) in enumerate(scored, 1):
+        cls = "live" if lab == "PRIME" else "newslo" if lab == "WORTH WATCHING" else "quiet"
+        rows += (f"<div class='ev'><span class='t'>{i}.</span>"
+                 f"<span class='cur'>{n}</span><span class='chip {cls}'>{lab} {s}</span>"
+                 f"<span>{why}</span></div>")
+    rows += ("<div class='ev none'>Attention ranking — where movement conditions "
+             "concentrate today. Not a promise of profit or direction.</div>")
+    return (f"<h3 class='section-h' style='margin-top:0'>Where attention pays today</h3>"
+            f"<div class='timeline'>{rows}</div>")
+
+
 def html_report(cards, events, ahead, nxt_ev, now, path):
     days = {}
     for t, imp, cur, title in ahead:
@@ -413,6 +451,8 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
 <div class="wrap">
   <h1>Daily Bias Board</h1>
   <div class="sub">{now:%A %d %B %Y · generated %H:%M UK}</div>
+{ranking_html(cards)}
+  <h3 class="section-h">The markets in detail</h3>
   <div class="grid">{card_html}
 {fg_card(fear_greed())}
 {vix_card()}
@@ -442,7 +482,9 @@ def ping_summary(cards, fg, events):
     live = [n for n, m, _ in cards if m["live"]]
     stretched = [n for n, m, _ in cards if m["rsi"] >= 70 or m["rsi"] <= 30]
     gold = next((m for n, m, _ in cards if n == "GOLD"), None)
-    bits = [f"{longs} long-side / {shorts} short-side",
+    top = sorted(((attention(m, e)[0], n) for n, m, e in cards), key=lambda x: -x[0])[:2]
+    bits = ["watch: " + ", ".join(f"{n} ({s})" for s, n in top),
+            f"{longs} long-side / {shorts} short-side",
             "LIVE: " + (", ".join(live) if live else "none"),
             "stretched: " + (", ".join(stretched) if stretched else "none")]
     if fg:
