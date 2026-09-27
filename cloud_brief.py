@@ -156,7 +156,8 @@ def read_market(symbol):
     last, cL5 = float(c.iloc[-1]), float(c.iloc[-6])
     nxt = 1 if last > cL5 else -1 if last < cL5 else 0
     return dict(rsi=rsi, volx=volx, live=volx > 1.0, trend=trend, pos=pos,
-                c1=c1, c6=c6, last=last, nxt=nxt)
+                c1=c1, c6=c6, last=last, nxt=nxt,
+                pdh=float(df["high"].iloc[-2]), pdl=float(df["low"].iloc[-2]))
 
 
 def reasons(m):
@@ -335,6 +336,28 @@ def ranking_html(cards):
             f"<div class='timeline'>{rows}</div>")
 
 
+def funnel_html(events, cards):
+    """The pre-session process of elimination: what's done, what's yours."""
+    n_high = sum(1 for _, imp, _, _ in events if imp == "High")
+    live = sum(1 for _, m, _ in cards if m["live"])
+    sided = sum(1 for _, m, _ in cards if m["trend"] != 0)
+    rows = [
+        ("1", "auto", f"News boxed off — {n_high} high-impact event(s) timed above; no fresh entries into them"),
+        ("2", "auto", f"Energy read — {live} of {len(cards)} markets live; dead days pre-eliminated"),
+        ("3", "auto", f"Markets ranked — attention list above; {sided} of {len(cards)} carry a permitted side"),
+        ("4", "auto", "Levels marked — yesterday's high / close / low on every card; reference, not signals"),
+        ("5", "auto", "Playbook fixed — only the 15:05 label is a trade; the ping declares the day"),
+        ("6", "YOU", "Risk pre-commitment — paper stage: no money moves; when it does, the limits are written BEFORE the open"),
+        ("7", "YOU", "The mirror — slept, calm, undistracted? If not, today's edge is negative regardless of the chart"),
+    ]
+    body = "".join(
+        f"<div class='ev'><span class='t'>{n}.</span>"
+        f"<span class='chip {'live' if tag == 'auto' else 'warn'}'>{tag.upper()}</span>"
+        f"<span>{txt}</span></div>" for n, tag, txt in rows)
+    return (f"<h3 class='section-h'>The morning funnel — process of elimination</h3>"
+            f"<div class='timeline'>{body}</div>")
+
+
 def html_report(cards, events, ahead, nxt_ev, now, path):
     days = {}
     for t, imp, cur, title in ahead:
@@ -388,6 +411,7 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
       <div class='gauge'><label>20-day range position · {m['pos']:.0f}%</label>
         <div class='track'><i style='left:{min(max(m['pos'],0),100):.0f}%'></i></div></div>
       <div class='volx'>Yesterday's range: <b>{m['volx']:.2f}×</b> its 20-day median</div>
+      <div class='volx'>Levels: high <b>{m['pdh']:,.1f}</b> · close <b>{m['c1']:,.1f}</b> · low <b>{m['pdl']:,.1f}</b> — yesterday's furniture, reference not signals</div>
       {f"<div class='newsblock'><label>Today's events for this market</label>{nrows}</div>" if nrows else ""}
       <ul class='why'>{why}</ul>
     </section>"""
@@ -459,6 +483,7 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
   </div>
   <h3 class="section-h">Today's schedule — when volatility may arrive</h3>
   <div class="timeline">{ev_rows}</div>
+{funnel_html(events, cards)}
 {next_session(cards, nxt_ev)}
   <h3 class="section-h">Week ahead — high-impact only</h3>
   <div class="timeline">{ahead_html}</div>
