@@ -542,7 +542,14 @@ def brief_already_sent() -> bool:
 
 def main():
     now = datetime.now(UK)
-    if os.environ.get("FORCE") != "1" and brief_already_sent():
+    forced = os.environ.get("FORCE") == "1"
+    if not forced and now.weekday() >= 5:
+        print("weekend - nothing to do")
+        return
+    if not forced and now.hour < 6:
+        print(f"{now:%H:%M} UK - too early to ping; a later slot delivers")
+        return
+    if not forced and brief_already_sent():
         print("brief already on the channel today - standing down")
         return
     print(f"MARKET CONTEXT — {now:%A %d %b %Y, %H:%M} UK\n")

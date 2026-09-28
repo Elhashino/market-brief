@@ -1,13 +1,18 @@
 name: morning-brief
 on:
   schedule:
-    # GitHub's scheduler runs these hours late on quiet repos (measured ~5.5h):
-    # several early slots so one lands in the morning; the script stands down
-    # once a brief is already on the channel.
-    - cron: '17 4 * * 1-5'
-    - cron: '17 5 * * 1-5'
-    - cron: '17 6 * * 1-5'
-    - cron: '17 7 * * 1-5'
+    # GitHub's scheduler runs these 6-8 HOURS late (measured 28 Sep: the 04:17
+    # slot fired 10:58 UTC). So we order breakfast at midnight: night slots
+    # whose lag lands in the UK morning. The script refuses to ping before
+    # 06:00 UK and stands down once a brief is on the channel — so early,
+    # late and duplicate runs are all harmless.
+    - cron: '37 23 * * 0-4'
+    - cron: '37 0 * * 1-5'
+    - cron: '37 1 * * 1-5'
+    - cron: '37 2 * * 1-5'
+    - cron: '37 3 * * 1-5'
+    - cron: '37 5 * * 1-5'
+    - cron: '37 7 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
