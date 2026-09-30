@@ -546,12 +546,8 @@ def main():
     if not forced and now.weekday() >= 5:
         print("weekend - nothing to do")
         return
-    if not forced and now.hour < 6:
-        print(f"{now:%H:%M} UK - too early to ping; a later slot delivers")
-        return
-    if not forced and brief_already_sent():
-        print("brief already on the channel today - standing down")
-        return
+    # The page is rebuilt on EVERY weekday run so it can never go stale;
+    # only the PING is gated (send window + channel dedupe) further below.
     print(f"MARKET CONTEXT — {now:%A %d %b %Y, %H:%M} UK\n")
     allev = fetch_events()
     events = [e for e in allev if e[0].date() == now.date()]
@@ -576,7 +572,12 @@ def main():
     path = os.path.join(out_dir, "index.html")
     html_report(cards, events, ahead, nxt_ev, now, path)
     print(f"\ndashboard written: {path}")
-    ping_summary(cards, fear_greed(), events)
+    if not forced and now.hour < 6:
+        print(f"{now:%H:%M} UK - page refreshed; too early to ping")
+    elif not forced and brief_already_sent():
+        print("page refreshed; brief already on the channel today - no ping")
+    else:
+        ping_summary(cards, fear_greed(), events)
 
 
 if __name__ == "__main__":
