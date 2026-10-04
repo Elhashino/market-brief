@@ -574,7 +574,8 @@ def main():
     print(f"\ndashboard written: {path}")
     if not forced and now.hour < 6:
         print(f"{now:%H:%M} UK - page refreshed; too early to ping")
-    elif not forced and brief_already_sent():
+    elif brief_already_sent():
+        # unconditional: even a forced/dispatched run never double-pings
         print("page refreshed; brief already on the channel today - no ping")
     else:
         ping_summary(cards, fear_greed(), events)
