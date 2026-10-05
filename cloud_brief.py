@@ -255,8 +255,10 @@ def fear_greed():
 def fg_card(fg):
     if not fg:
         return ""
-    rows = "".join(f"<div class='ev'><span class='t'>{v:5.0f}</span><span>{n}</span></div>"
-                   for n, v in fg["comps"])
+    rows = "".join(
+        f"<div class='ev'><span class='t'>{v:5.0f}</span><span>{n}</span>"
+        f"<span class='cur'>{'greed side' if v >= 55 else 'fear side' if v <= 45 else 'neutral'}</span></div>"
+        for n, v in fg["comps"])
     lcls = ("news" if fg["idx"] < 25 else "warn" if fg["idx"] < 45 else
             "newslo" if fg["idx"] < 55 else "live")
     return f"""
@@ -434,16 +436,31 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
                         f"<span class='imp {imp.lower()}'>{imp}</span><span>{ti}</span></div>"
                         for t, imp, ti in evs)
         why = "".join(f"<li>{x}</li>" for x in reasons(m))
+        rsi_word = ("OVERBOUGHT — crowded high" if m["rsi"] >= 70
+                    else "OVERSOLD — crowded low" if m["rsi"] <= 30 else "neutral")
+        rz = ("os" if m["rsi"] <= 30 else "ob" if m["rsi"] >= 70 else "mid")
+        pos_word = ("AT THE CEILING — breakout territory" if m["pos"] >= 90
+                    else "AT THE FLOOR — breakdown territory" if m["pos"] <= 10
+                    else "upper half" if m["pos"] >= 50 else "lower half")
+        pz = ("lo" if m["pos"] <= 10 else "hi" if m["pos"] >= 90 else "mid")
+        vol_word = ("LIVELY — movement tends to continue" if m["volx"] > 1.0
+                    else "quiet — edges fade on days like this")
         card_html += f"""
     <section class='card'>
       <header><h2>{name}</h2><span class='bias {bcls}'>{bias}</span></header>
       {state_html}
       <div class='chips'>{chips}</div>
-      <div class='gauge'><label>RSI14 · {m['rsi']:.0f}</label>
-        <div class='track rsi'><i style='left:{min(max(m['rsi'],0),100):.0f}%'></i></div></div>
-      <div class='gauge'><label>20-day range position · {m['pos']:.0f}%</label>
-        <div class='track'><i style='left:{min(max(m['pos'],0),100):.0f}%'></i></div></div>
-      <div class='volx'>Yesterday's range: <b>{m['volx']:.2f}×</b> its 20-day median</div>
+      <div class='gauge'><label>RSI14 · <b>{m['rsi']:.0f}</b> — {rsi_word}</label>
+        <div class='track rsi'><i style='left:{min(max(m['rsi'],0),100):.0f}%'></i></div>
+        <div class='zones'><span class='{'on' if rz == 'os' else ''}'>oversold</span>
+        <span class='{'on' if rz == 'mid' else ''}'>neutral</span>
+        <span class='{'on' if rz == 'ob' else ''}'>overbought</span></div></div>
+      <div class='gauge'><label>20-day range position · <b>{m['pos']:.0f}%</b> — {pos_word}</label>
+        <div class='track'><i style='left:{min(max(m['pos'],0),100):.0f}%'></i></div>
+        <div class='zones'><span class='{'on' if pz == 'lo' else ''}'>floor</span>
+        <span class='{'on' if pz == 'mid' else ''}'>middle of its range</span>
+        <span class='{'on' if pz == 'hi' else ''}'>ceiling</span></div></div>
+      <div class='volx'>Yesterday's range: <b>{m['volx']:.2f}×</b> its 20-day median — {vol_word}</div>
       <div class='volx'>Levels: high <b>{m['pdh']:,.1f}</b> · close <b>{m['c1']:,.1f}</b> · low <b>{m['pdl']:,.1f}</b> — yesterday's furniture, reference not signals</div>
       {f"<div class='newsblock'><label>Today's events for this market</label>{nrows}</div>" if nrows else ""}
       <ul class='why'>{why}</ul>
@@ -477,6 +494,10 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
   .chip.newslo {{ background:rgba(91,139,217,.16); color:#8fb2e8; }}
   .gauge {{ margin:8px 0; }}
   .gauge label {{ font:500 11px var(--mono); color:var(--mut); }}
+  .gauge label b {{ color:var(--text); }}
+  .zones {{ display:flex; justify-content:space-between; font:500 9px var(--mono);
+           color:#5a6886; margin-top:3px; letter-spacing:.02em; }}
+  .zones .on {{ color:var(--gold); font-weight:700; }}
   .track {{ position:relative; height:8px; border-radius:4px; margin-top:4px;
            background:linear-gradient(90deg,#22304f,#2c3d63); }}
   .track.rsi {{ background:linear-gradient(90deg,#1f4f43 0 30%,#22304f 30% 70%,#5a2c33 70% 100%); }}
