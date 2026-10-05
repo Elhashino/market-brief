@@ -1,12 +1,12 @@
-"""MARKET CONTEXT — the daily bias board (console + visual dashboard).
+﻿"""MARKET CONTEXT â€” the daily bias board (console + visual dashboard).
 
 Run: py -3.13 market_context.py            (prints board, writes + opens
                                             market_brief.html)
      py -3.13 market_context.py --no-open  (skip opening the browser)
 
-Per market: BIAS (which side has permission today — the 5-day trend filter our
+Per market: BIAS (which side has permission today â€” the 5-day trend filter our
 campaign validated), day LIVE/quiet (vol gate logic), stretch (RSI extremes =
-crowding), today's news mapped to that market with UK times — and the written
+crowding), today's news mapped to that market with UK times â€” and the written
 REASON for every claim. Receipt stays on the page: unconditional direction
 measured 50.1% on 913 unseen days; bias = permission + energy, not prophecy.
 """
@@ -85,11 +85,11 @@ def vix_card():
       <header><h2>Fear gauges</h2><span class='bias flat'>OPTIONS MARKET NERVES</span></header>
       <div class='newsblock' style='border-top:none;margin-top:6px;padding-top:0'>{rows}</div>
       <ul class='why'>
-        <li>Each is the price of insurance on its own market, read from options —
+        <li>Each is the price of insurance on its own market, read from options â€”
         the crowd's nerves, quantified. Bands are conventional: calm / normal /
         nervous / extreme (crisis).</li>
         <li>Context, not a signal: calm gauges under stretched indices mean any
-        surprise lands on an unhedged crowd — violence risk, direction unknown.</li>
+        surprise lands on an unhedged crowd â€” violence risk, direction unknown.</li>
       </ul>
     </section>"""
 
@@ -102,34 +102,34 @@ def records_panel():
         f = pd.read_csv(os.path.join(here, "gold_paper_log.csv"))
         pts = f["u1"].astype(float).sum() + pd.to_numeric(f["u2"], errors="coerce").fillna(0).sum()
         rows += (f"<div class='ev'><span class='t'>{len(f)}/40</span>"
-                 f"<span>Gold 15:05 morning momentum — confirmed, paper stage</span>"
+                 f"<span>Gold 15:05 morning momentum â€” confirmed, paper stage</span>"
                  f"<span class='cur'>{pts:+.1f} pts</span></div>")
     except Exception:
         rows += ("<div class='ev'><span class='t'>0/40</span>"
-                 "<span>Gold 15:05 morning momentum — confirmed, paper stage</span>"
+                 "<span>Gold 15:05 morning momentum â€” confirmed, paper stage</span>"
                  "<span class='cur'>awaiting first trade</span></div>")
     try:
         d = pd.read_csv(os.path.join(here, "donchian_paper_log.csv"))
         rows += (f"<div class='ev'><span class='t'>{len(d)}/100</span>"
-                 f"<span>Gold Donchian breakout drift — confirmed, machine-papered</span>"
+                 f"<span>Gold Donchian breakout drift â€” confirmed, machine-papered</span>"
                  f"<span class='cur'>{d['pts'].astype(float).sum():+.1f} pts</span></div>")
     except Exception:
         rows += ("<div class='ev'><span class='t'>0/100</span>"
-                 "<span>Gold Donchian breakout drift — confirmed, machine-papered</span>"
+                 "<span>Gold Donchian breakout drift â€” confirmed, machine-papered</span>"
                  "<span class='cur'>awaiting first signal</span></div>")
     watch = [
         ("Turn-of-month long, vol-gated", "gold", "+0.49/+0.78 both halves"),
         ("Volume-spike continuation +vol", "NAS100", "+5.41 @close n=350"),
         ("Asian-range sweep-reverse +trend", "S&amp;P", "+0.95 @close n=558"),
         ("NR7 breakout raw", "NAS100", "+7.06 @close n=194, thin"),
-        ("Supertrend flip raw", "gold", "+0.01 — likely nothing"),
-        ("Round-50 break +trend", "gold", "+0.05 — likely nothing"),
+        ("Supertrend flip raw", "gold", "+0.01 â€” likely nothing"),
+        ("Round-50 break +trend", "gold", "+0.05 â€” likely nothing"),
     ]
     wrows = "".join(f"<div class='ev'><span class='cur'>{mk}</span><span>{nm}</span>"
                     f"<span class='cur'>{st}</span></div>" for nm, mk, st in watch)
-    return (f"<h3 class='section-h'>The record — earning trust daily</h3>"
+    return (f"<h3 class='section-h'>The record â€” earning trust daily</h3>"
             f"<div class='timeline'>{rows}"
-            f"<h4 class='wk'>Watch list — unproven; judged only by data accruing since 22 Sep 2026</h4>"
+            f"<h4 class='wk'>Watch list â€” unproven; judged only by data accruing since 22 Sep 2026</h4>"
             f"{wrows}</div>")
 
 
@@ -163,26 +163,26 @@ def read_market(symbol):
 def reasons(m):
     r = []
     if m["trend"] > 0:
-        r.append(f"LONG side only — yesterday's close {m['c1']:,.1f} sits above the "
+        r.append(f"LONG side only â€” yesterday's close {m['c1']:,.1f} sits above the "
                  f"close five sessions back ({m['c6']:,.1f}); counter-trend trades "
                  f"tested as the losing side on every market.")
     elif m["trend"] < 0:
-        r.append(f"SHORT side only — yesterday's close {m['c1']:,.1f} sits below the "
+        r.append(f"SHORT side only â€” yesterday's close {m['c1']:,.1f} sits below the "
                  f"close five sessions back ({m['c6']:,.1f}).")
     else:
-        r.append("No side — the 5-day trend is flat; no permission either way.")
-    r.append((f"LIVE day — yesterday ranged {m['volx']:.2f}× its 20-day median; "
+        r.append("No side â€” the 5-day trend is flat; no permission either way.")
+    r.append((f"LIVE day â€” yesterday ranged {m['volx']:.2f}Ã— its 20-day median; "
               "movement begets movement (the tested vol gate is open).")
              if m["live"] else
-             (f"Quiet day — yesterday ranged only {m['volx']:.2f}× its 20-day "
+             (f"Quiet day â€” yesterday ranged only {m['volx']:.2f}Ã— its 20-day "
               "median; edges tested near zero on quiet days."))
     if m["rsi"] >= 70:
-        r.append(f"STRETCHED HIGH — RSI14 at {m['rsi']:.0f} and price at "
+        r.append(f"STRETCHED HIGH â€” RSI14 at {m['rsi']:.0f} and price at "
                  f"{m['pos']:.0f}% of its 20-day range: the crowd is leaning hard "
                  "one way, so surprises land violently. A caution flag, not a "
-                 "short signal — stretch tested as no entry edge.")
+                 "short signal â€” stretch tested as no entry edge.")
     elif m["rsi"] <= 30:
-        r.append(f"STRETCHED LOW — RSI14 at {m['rsi']:.0f}: crowded downside, "
+        r.append(f"STRETCHED LOW â€” RSI14 at {m['rsi']:.0f}: crowded downside, "
                  "violent-bounce risk. Caution flag only.")
     return r
 
@@ -268,7 +268,7 @@ def fg_card(fg):
       <div style='text-align:center;font:700 30px var(--mono);margin:2px 0 10px'>{fg['idx']:.0f}</div>
       <div class='newsblock' style='border-top:none;padding-top:0'><label>Components (each 0-100 vs its own past year)</label>{rows}</div>
       <ul class='why'>
-        <li>Crowd mood measured five ways and averaged — our own build of the
+        <li>Crowd mood measured five ways and averaged â€” our own build of the
         classic dial, with the working parts shown. Description of sentiment,
         not a signal: the tested edges live in the gates, not here.</li>
       </ul>
@@ -278,7 +278,7 @@ def fg_card(fg):
 def next_session(cards, nxt_ev):
     """The standing setup for the next session: permission side + energy lean
     from the latest completed daily bar, plus what's scheduled. Direction
-    stays unknowable — this is the setup, not the outcome."""
+    stays unknowable â€” this is the setup, not the outcome."""
     rows = ""
     for name, m, _ in cards:
         side = ("LONG side" if m["nxt"] > 0 else
@@ -287,16 +287,16 @@ def next_session(cards, nxt_ev):
         lean = "likely LIVE" if m["volx"] > 1.0 else "leaning quiet"
         rows += (f"<div class='ev'><span class='cur'>{name}</span>"
                  f"<span class='chip {scls}'>{side}</span>"
-                 f"<span>{lean} (latest session {m['volx']:.2f}× median)</span></div>")
+                 f"<span>{lean} (latest session {m['volx']:.2f}Ã— median)</span></div>")
     erows = "".join(f"<div class='ev'><span class='t'>{t:%H:%M}</span>"
                     f"<span class='imp {imp.lower()}'>{imp}</span>"
                     f"<span class='cur'>{cur}</span><span>{ti}</span></div>"
                     for t, imp, cur, ti in nxt_ev) or \
         "<div class='ev none'>Nothing medium/high-impact scheduled.</div>"
-    return (f"<h3 class='section-h'>Next session — the standing setup</h3>"
+    return (f"<h3 class='section-h'>Next session â€” the standing setup</h3>"
             f"<div class='timeline'>{rows}"
             f"<h4 class='wk'>Scheduled for tomorrow</h4>{erows}"
-            f"<div class='ev none'>Computed from the latest completed session — "
+            f"<div class='ev none'>Computed from the latest completed session â€” "
             f"permission and energy, never direction.</div></div>")
 
 
@@ -317,10 +317,10 @@ def attention(m, evs):
         parts.append(f"high-impact news {min(his):%H:%M} UK")
     if m["rsi"] >= 70 or m["rsi"] <= 30:
         s += 15
-        parts.append("stretched — violence risk")
+        parts.append("stretched â€” violence risk")
     s = min(round(s), 100)
     label = "PRIME" if s >= 65 else "WORTH WATCHING" if s >= 45 else "LOW INTEREST"
-    return s, label, " · ".join(parts)
+    return s, label, " Â· ".join(parts)
 
 
 def ranking_html(cards):
@@ -332,42 +332,58 @@ def ranking_html(cards):
         rows += (f"<div class='ev'><span class='t'>{i}.</span>"
                  f"<span class='cur'>{n}</span><span class='chip {cls}'>{lab} {s}</span>"
                  f"<span>{why}</span></div>")
-    rows += ("<div class='ev none'>Attention ranking — where movement conditions "
+    rows += ("<div class='ev none'>Attention ranking â€” where movement conditions "
              "concentrate today. Not a promise of profit or direction.</div>")
     return (f"<h3 class='section-h' style='margin-top:0'>Where attention pays today</h3>"
             f"<div class='timeline'>{rows}</div>")
 
 
-def analogue_html():
-    """DAYS LIKE TODAY — the analogue engine's live fans with calibration stamps."""
+FAN_PAIRS = [("GC=F", "GOLD"), ("^GSPC", "S&P 500"), ("^NDX", "NASDAQ 100"),
+             ("^FTSE", "FTSE 100"), ("BTC-USD", "BITCOIN"), ("DX-Y.NYB", "DOLLAR")]
+
+
+def compute_fans():
+    """One pass of the analogue engine for all markets â€” shared by cards + section."""
     try:
         from analogue_engine import today_fan
     except Exception:
-        return ""
-    PAIRS = [("GC=F", "GOLD"), ("^GSPC", "S&P 500"), ("^NDX", "NASDAQ 100"),
-             ("^FTSE", "FTSE 100"), ("BTC-USD", "BITCOIN"), ("DX-Y.NYB", "DOLLAR")]
-    rows = ""
-    for sym, nm in PAIRS:
+        return {}
+    fans = {}
+    for sym, nm in FAN_PAIRS:
         try:
-            fan = today_fan(sym, nm)
+            f = today_fan(sym, nm)
+            if f:
+                fans[nm] = f
         except Exception:
-            fan = None
+            pass
+    return fans
+
+
+def _px(v):
+    return f"{v:,.0f}" if abs(v) >= 1000 else f"{v:,.2f}"
+
+
+def analogue_html(fans):
+    """DAYS LIKE TODAY â€” the analogue engine's live fans with calibration stamps."""
+    rows = ""
+    for _, nm in FAN_PAIRS:
+        fan = fans.get(nm)
         if not fan:
             continue
         warn = "UNRELIABLE" in fan["note"] or "WORSE" in fan["note"]
         rows += (f"<div class='ev'><span class='cur'>{nm}</span>"
-                 f"<span>{fan['up']:.0f}% of its 150 lookalike days closed up next day · "
-                 f"median <b>{fan['med']:+.2f}%</b> · typical band <b>{fan['lo']:+.2f}%</b> to "
+                 f"<span>{fan['up']:.0f}% of its 150 lookalike days closed up next day Â· "
+                 f"median <b>{fan['med']:+.2f}%</b> Â· typical band <b>{fan['lo']:+.2f}%</b> to "
                  f"<b>{fan['hi']:+.2f}%</b></span>"
                  f"<span class='chip {'warn' if warn else 'live'}'>{fan['note']}</span></div>")
     if not rows:
         return ""
     rows += ("<div class='ev none'>Each market's 150 most similar historical days (same trend, "
-             "energy, stretch, momentum fingerprint) and what the NEXT day did after them — a "
+             "energy, stretch, momentum fingerprint) and what the NEXT day did after them â€” a "
              "probability fan that rebuilds daily, walk-forward calibrated 4 Oct 2026. It describes "
              "the shape of tomorrow, never the side: direction skill measured ~52% even on "
              "confident reads.</div>")
-    return (f"<h3 class='section-h'>Days like today — the analogue engine</h3>"
+    return (f"<h3 class='section-h'>Days like today â€” the analogue engine</h3>"
             f"<div class='timeline'>{rows}</div>")
 
 
@@ -377,23 +393,23 @@ def funnel_html(events, cards):
     live = sum(1 for _, m, _ in cards if m["live"])
     sided = sum(1 for _, m, _ in cards if m["trend"] != 0)
     rows = [
-        ("1", "auto", f"News boxed off — {n_high} high-impact event(s) timed above; no fresh entries into them"),
-        ("2", "auto", f"Energy read — {live} of {len(cards)} markets live; dead days pre-eliminated"),
-        ("3", "auto", f"Markets ranked — attention list above; {sided} of {len(cards)} carry a permitted side"),
-        ("4", "auto", "Levels marked — yesterday's high / close / low on every card; reference, not signals"),
-        ("5", "auto", "Playbook fixed — only the 15:05 label is a trade; the ping declares the day"),
-        ("6", "YOU", "Risk pre-commitment — paper stage: no money moves; when it does, the limits are written BEFORE the open"),
-        ("7", "YOU", "The mirror — slept, calm, undistracted? If not, today's edge is negative regardless of the chart"),
+        ("1", "auto", f"News boxed off â€” {n_high} high-impact event(s) timed above; no fresh entries into them"),
+        ("2", "auto", f"Energy read â€” {live} of {len(cards)} markets live; dead days pre-eliminated"),
+        ("3", "auto", f"Markets ranked â€” attention list above; {sided} of {len(cards)} carry a permitted side"),
+        ("4", "auto", "Levels marked â€” yesterday's high / close / low on every card; reference, not signals"),
+        ("5", "auto", "Playbook fixed â€” only the 15:05 label is a trade; the ping declares the day"),
+        ("6", "YOU", "Risk pre-commitment â€” paper stage: no money moves; when it does, the limits are written BEFORE the open"),
+        ("7", "YOU", "The mirror â€” slept, calm, undistracted? If not, today's edge is negative regardless of the chart"),
     ]
     body = "".join(
         f"<div class='ev'><span class='t'>{n}.</span>"
         f"<span class='chip {'live' if tag == 'auto' else 'warn'}'>{tag.upper()}</span>"
         f"<span>{txt}</span></div>" for n, tag, txt in rows)
-    return (f"<h3 class='section-h'>The morning funnel — process of elimination</h3>"
+    return (f"<h3 class='section-h'>The morning funnel â€” process of elimination</h3>"
             f"<div class='timeline'>{body}</div>")
 
 
-def html_report(cards, events, ahead, nxt_ev, now, path):
+def html_report(cards, events, ahead, nxt_ev, now, path, fans=None):
     days = {}
     for t, imp, cur, title in ahead:
         days.setdefault(t.date(), []).append((t, cur, title))
@@ -416,9 +432,9 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
         state_html = ""
         if name == "GOLD":
             armed = m["live"] and m["trend"] != 0
-            state_html = ("<div class='state on'>STATE: ARMED — the 15:05 ping decides</div>"
+            state_html = ("<div class='state on'>STATE: ARMED â€” the 15:05 ping decides</div>"
                           if armed else
-                          "<div class='state off'>STATE: DEAD — gates shut, no trade possible today</div>")
+                          "<div class='state off'>STATE: DEAD â€” gates shut, no trade possible today</div>")
         bias = ("LONG SIDE" if m["trend"] > 0 else
                 "SHORT SIDE" if m["trend"] < 0 else "NO SIDE")
         bcls = "long" if m["trend"] > 0 else "short" if m["trend"] < 0 else "flat"
@@ -436,32 +452,45 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
                         f"<span class='imp {imp.lower()}'>{imp}</span><span>{ti}</span></div>"
                         for t, imp, ti in evs)
         why = "".join(f"<li>{x}</li>" for x in reasons(m))
-        rsi_word = ("OVERBOUGHT — crowded high" if m["rsi"] >= 70
-                    else "OVERSOLD — crowded low" if m["rsi"] <= 30 else "neutral")
+        rsi_word = ("OVERBOUGHT â€” crowded high" if m["rsi"] >= 70
+                    else "OVERSOLD â€” crowded low" if m["rsi"] <= 30 else "neutral")
         rz = ("os" if m["rsi"] <= 30 else "ob" if m["rsi"] >= 70 else "mid")
-        pos_word = ("AT THE CEILING — breakout territory" if m["pos"] >= 90
-                    else "AT THE FLOOR — breakdown territory" if m["pos"] <= 10
+        pos_word = ("AT THE CEILING â€” breakout territory" if m["pos"] >= 90
+                    else "AT THE FLOOR â€” breakdown territory" if m["pos"] <= 10
                     else "upper half" if m["pos"] >= 50 else "lower half")
         pz = ("lo" if m["pos"] <= 10 else "hi" if m["pos"] >= 90 else "mid")
-        vol_word = ("LIVELY — movement tends to continue" if m["volx"] > 1.0
-                    else "quiet — edges fade on days like this")
+        vol_word = ("LIVELY â€” movement tends to continue" if m["volx"] > 1.0
+                    else "quiet â€” edges fade on days like this")
+        fan = (fans or {}).get(name)
+        terr = ""
+        if fan:
+            lo_p = m["last"] * (1 + fan["lo"] / 100)
+            md_p = m["last"] * (1 + fan["med"] / 100)
+            hi_p = m["last"] * (1 + fan["hi"] / 100)
+            wider = " (gold runs hotter than its lookalikes â€” treat this band as WIDER)" \
+                if "UNRELIABLE" in fan["note"] else ""
+            terr = (f"<div class='volx'>Next session's probable territory: <b>{_px(lo_p)}</b>"
+                    f" â€” centre <b>{_px(md_p)}</b> â€” <b>{_px(hi_p)}</b> Â· {fan['up']:.0f}% of its "
+                    f"150 lookalike days closed higher{wider}. A territory, never a target â€” "
+                    f"the side stays ~a coin flip.</div>")
         card_html += f"""
     <section class='card'>
       <header><h2>{name}</h2><span class='bias {bcls}'>{bias}</span></header>
       {state_html}
       <div class='chips'>{chips}</div>
-      <div class='gauge'><label>RSI14 · <b>{m['rsi']:.0f}</b> — {rsi_word}</label>
+      <div class='gauge'><label>RSI14 Â· <b>{m['rsi']:.0f}</b> â€” {rsi_word}</label>
         <div class='track rsi'><i style='left:{min(max(m['rsi'],0),100):.0f}%'></i></div>
         <div class='zones'><span class='{'on' if rz == 'os' else ''}'>oversold</span>
         <span class='{'on' if rz == 'mid' else ''}'>neutral</span>
         <span class='{'on' if rz == 'ob' else ''}'>overbought</span></div></div>
-      <div class='gauge'><label>20-day range position · <b>{m['pos']:.0f}%</b> — {pos_word}</label>
+      <div class='gauge'><label>20-day range position Â· <b>{m['pos']:.0f}%</b> â€” {pos_word}</label>
         <div class='track'><i style='left:{min(max(m['pos'],0),100):.0f}%'></i></div>
         <div class='zones'><span class='{'on' if pz == 'lo' else ''}'>floor</span>
         <span class='{'on' if pz == 'mid' else ''}'>middle of its range</span>
         <span class='{'on' if pz == 'hi' else ''}'>ceiling</span></div></div>
-      <div class='volx'>Yesterday's range: <b>{m['volx']:.2f}×</b> its 20-day median — {vol_word}</div>
-      <div class='volx'>Levels: high <b>{m['pdh']:,.1f}</b> · close <b>{m['c1']:,.1f}</b> · low <b>{m['pdl']:,.1f}</b> — yesterday's furniture, reference not signals</div>
+      <div class='volx'>Yesterday's range: <b>{m['volx']:.2f}Ã—</b> its 20-day median â€” {vol_word}</div>
+      {terr}
+      <div class='volx'>Levels: high <b>{m['pdh']:,.1f}</b> Â· close <b>{m['c1']:,.1f}</b> Â· low <b>{m['pdl']:,.1f}</b> â€” yesterday's furniture, reference not signals</div>
       {f"<div class='newsblock'><label>Today's events for this market</label>{nrows}</div>" if nrows else ""}
       <ul class='why'>{why}</ul>
     </section>"""
@@ -528,23 +557,23 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
 </style>
 <div class="wrap">
   <h1>Daily Bias Board</h1>
-  <div class="sub">{now:%A %d %B %Y · generated %H:%M UK}</div>
+  <div class="sub">{now:%A %d %B %Y Â· generated %H:%M UK}</div>
 {ranking_html(cards)}
   <h3 class="section-h">The markets in detail</h3>
   <div class="grid">{card_html}
 {fg_card(fear_greed())}
 {vix_card()}
   </div>
-  <h3 class="section-h">Today's schedule — when volatility may arrive</h3>
+  <h3 class="section-h">Today's schedule â€” when volatility may arrive</h3>
   <div class="timeline">{ev_rows}</div>
-{analogue_html()}
+{analogue_html(fans or {})}
 {funnel_html(events, cards)}
 {next_session(cards, nxt_ev)}
-  <h3 class="section-h">Week ahead — high-impact only</h3>
+  <h3 class="section-h">Week ahead â€” high-impact only</h3>
   <div class="timeline">{ahead_html}</div>
-  <footer>Sources: <a href="https://www.forexfactory.com/calendar">ForexFactory calendar</a> (live feed) ·
-  price data Yahoo Finance daily · gates &amp; filters as validated in the banker-move campaign.<br>
-  Receipt: unconditional day-direction measured <b>50.1%</b> over 913 unseen days —
+  <footer>Sources: <a href="https://www.forexfactory.com/calendar">ForexFactory calendar</a> (live feed) Â·
+  price data Yahoo Finance daily Â· gates &amp; filters as validated in the banker-move campaign.<br>
+  Receipt: unconditional day-direction measured <b>50.1%</b> over 913 unseen days â€”
   BIAS on this board means which side has permission and how alive the day is, never a promised destination.</footer>
 </div>"""
     with open(path, "w", encoding="utf-8") as f:
@@ -603,7 +632,7 @@ def main():
         return
     # The page is rebuilt on EVERY weekday run so it can never go stale;
     # only the PING is gated (send window + channel dedupe) further below.
-    print(f"MARKET CONTEXT — {now:%A %d %b %Y, %H:%M} UK\n")
+    print(f"MARKET CONTEXT â€” {now:%A %d %b %Y, %H:%M} UK\n")
     allev = fetch_events()
     events = [e for e in allev if e[0].date() == now.date()]
     ahead = [e for e in allev if e[0].date() > now.date() and e[1] == "High"]
@@ -625,7 +654,8 @@ def main():
     out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "index.html")
-    html_report(cards, events, ahead, nxt_ev, now, path)
+    fans = compute_fans()
+    html_report(cards, events, ahead, nxt_ev, now, path, fans=fans)
     print(f"\ndashboard written: {path}")
     if not forced and now.hour < 6:
         print(f"{now:%H:%M} UK - page refreshed; too early to ping")
@@ -638,3 +668,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
