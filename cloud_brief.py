@@ -336,6 +336,39 @@ def ranking_html(cards):
             f"<div class='timeline'>{rows}</div>")
 
 
+def analogue_html():
+    """DAYS LIKE TODAY — the analogue engine's live fans with calibration stamps."""
+    try:
+        from analogue_engine import today_fan
+    except Exception:
+        return ""
+    PAIRS = [("GC=F", "GOLD"), ("^GSPC", "S&P 500"), ("^NDX", "NASDAQ 100"),
+             ("^FTSE", "FTSE 100"), ("BTC-USD", "BITCOIN"), ("DX-Y.NYB", "DOLLAR")]
+    rows = ""
+    for sym, nm in PAIRS:
+        try:
+            fan = today_fan(sym, nm)
+        except Exception:
+            fan = None
+        if not fan:
+            continue
+        warn = "UNRELIABLE" in fan["note"] or "WORSE" in fan["note"]
+        rows += (f"<div class='ev'><span class='cur'>{nm}</span>"
+                 f"<span>{fan['up']:.0f}% of its 150 lookalike days closed up next day · "
+                 f"median <b>{fan['med']:+.2f}%</b> · typical band <b>{fan['lo']:+.2f}%</b> to "
+                 f"<b>{fan['hi']:+.2f}%</b></span>"
+                 f"<span class='chip {'warn' if warn else 'live'}'>{fan['note']}</span></div>")
+    if not rows:
+        return ""
+    rows += ("<div class='ev none'>Each market's 150 most similar historical days (same trend, "
+             "energy, stretch, momentum fingerprint) and what the NEXT day did after them — a "
+             "probability fan that rebuilds daily, walk-forward calibrated 4 Oct 2026. It describes "
+             "the shape of tomorrow, never the side: direction skill measured ~52% even on "
+             "confident reads.</div>")
+    return (f"<h3 class='section-h'>Days like today — the analogue engine</h3>"
+            f"<div class='timeline'>{rows}</div>")
+
+
 def funnel_html(events, cards):
     """The pre-session process of elimination: what's done, what's yours."""
     n_high = sum(1 for _, imp, _, _ in events if imp == "High")
@@ -483,6 +516,7 @@ def html_report(cards, events, ahead, nxt_ev, now, path):
   </div>
   <h3 class="section-h">Today's schedule — when volatility may arrive</h3>
   <div class="timeline">{ev_rows}</div>
+{analogue_html()}
 {funnel_html(events, cards)}
 {next_session(cards, nxt_ev)}
   <h3 class="section-h">Week ahead — high-impact only</h3>
