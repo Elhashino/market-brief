@@ -20,12 +20,15 @@ A market whose coverage misses the band is reported as uncalibrated there.
 """
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
 K = 150
 TEST_DAYS = 500
+FEATS = ["trend", "volx", "rpos", "rsi", "ret1", "ret5"]
 MARKETS = [("GC=F", "GOLD"), ("^GSPC", "S&P 500"), ("^NDX", "NASDAQ 100"),
            ("^FTSE", "FTSE 100"), ("BTC-USD", "BITCOIN"), ("DX-Y.NYB", "DOLLAR")]
 
@@ -46,7 +49,8 @@ def features(df):
     f["ret1"] = c.pct_change().clip(-0.1, 0.1)
     f["ret5"] = c.pct_change(5).clip(-0.2, 0.2)
     f["next"] = c.pct_change().shift(-1)          # tomorrow's return (the outcome)
-    return f.dropna()
+    # keep the newest day: its outcome is unknown, but it's the day a fan is for
+    return f.dropna(subset=FEATS)
 
 
 def run(symbol, name):
@@ -57,11 +61,11 @@ def run(symbol, name):
     else:
         df.columns = [c.lower() for c in df.columns]
     df = df.dropna(subset=["close"])
-    f = features(df)
+    f = features(df).dropna()                     # the bench needs known outcomes
     if len(f) < 1500:
         print(f"{name:10} not enough history ({len(f)} days)")
         return
-    X = f[["trend", "volx", "rpos", "rsi", "ret1", "ret5"]].to_numpy()
+    X = f[FEATS].to_numpy()
     y = f["next"].to_numpy()
     mu, sd = X.mean(axis=0), X.std(axis=0) + 1e-9
     Z = (X - mu) / sd
@@ -95,14 +99,9 @@ def run(symbol, name):
           f"| magnitude corr {mag_corr:+.2f} | direction: {dir_line}")
 
     # today's live fan (the product, if calibrated)
-    pool = Z[: n - 252]
-    d = np.linalg.norm(pool - Z[n - 1], axis=1)
-    nb = np.argpartition(d, K)[:K]
-    out = y[nb] * 100
-    out = out[~np.isnan(out)]
-    print(f"           DAYS LIKE TODAY ({K} analogues): {np.mean(out > 0) * 100:.0f}% closed up next day | "
-          f"median {np.median(out):+.2f}% | typical band {np.percentile(out, 10):+.2f}% to "
-          f"{np.percentile(out, 90):+.2f}%")
+    fan = fan_from(df, name, date.today() - timedelta(days=1))
+    print(f"           DAYS LIKE TODAY ({K} analogues): {fan['up']:.0f}% closed up next day | "
+          f"median {fan['med']:+.2f}% | typical band {fan['lo']:+.2f}% to {fan['hi']:+.2f}%")
 
 
 # Calibration stamps from the 4 Oct 2026 walk-forward bench (RESULTS_ANALOGUE.txt).
@@ -117,19 +116,24 @@ CALIBRATION = {
 }
 
 
-def today_fan(symbol, name):
-    """Today's live analogue fan for one market — the product. Returns a dict or None."""
+def today_fan(symbol, name, through):
+    """Today's live analogue fan for one market — the product. Returns a dict or None.
+    `through` is the latest date whose daily bar has finished."""
     df = yf.download(symbol, period="max", interval="1d", progress=False,
                      auto_adjust=False)
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = [c[0].lower() for c in df.columns]
     else:
         df.columns = [c.lower() for c in df.columns]
-    df = df.dropna(subset=["close"])
-    f = features(df)
+    return fan_from(df.dropna(subset=["close"]), name, through)
+
+
+def fan_from(df, name, through):
+    """The fan for the session after `through`, built from its finished fingerprint."""
+    f = features(df[df.index.date <= through])
     if len(f) < 1500:
         return None
-    X = f[["trend", "volx", "rpos", "rsi", "ret1", "ret5"]].to_numpy()
+    X = f[FEATS].to_numpy()
     y = f["next"].to_numpy()
     mu, sd = X.mean(axis=0), X.std(axis=0) + 1e-9
     Z = (X - mu) / sd
@@ -141,7 +145,7 @@ def today_fan(symbol, name):
     out = out[~np.isnan(out)]
     if len(out) < 50:
         return None
-    return dict(name=name, up=float(np.mean(out > 0) * 100),
+    return dict(name=name, asof=f.index[-1].date(), up=float(np.mean(out > 0) * 100),
                 med=float(np.median(out)), lo=float(np.percentile(out, 10)),
                 hi=float(np.percentile(out, 90)),
                 note=CALIBRATION.get(name, "uncalibrated"))

@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install yfinance pandas numpy requests
+      - run: pip install yfinance pandas numpy requests dukascopy-python
       - run: python cloud_brief.py
         env:
           FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
