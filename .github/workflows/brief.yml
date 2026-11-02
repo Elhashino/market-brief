@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install yfinance pandas numpy requests dukascopy-python
+      - run: pip install yfinance pandas==3.1.0 numpy==2.5.4 requests==2.34.2 dukascopy-python==4.0.1
       - run: python cloud_brief.py
         env:
           FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
@@ -38,3 +38,9 @@ jobs:
           git add docs/index.html
           git commit -m "morning brief" || echo "no change"
           git push
+      - name: a crash must never be silent
+        if: failure()
+        run: |
+          if ! curl -s "https://ntfy.sh/sunblessed-gold-mm-7x3q/json?poll=1&since=12h" | grep -q "BRIEF SYSTEM FAILED"; then
+            curl -s -H "Title: BRIEF SYSTEM FAILED" -d "The brief run crashed on GitHub, so today's page may be out of date. Tell Claude." https://ntfy.sh/sunblessed-gold-mm-7x3q
+          fi

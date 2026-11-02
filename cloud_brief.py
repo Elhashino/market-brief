@@ -223,9 +223,13 @@ def _range_ratio(bars):
     return float(rng.iloc[-1]) / max(float(rng.iloc[-21:-1].median()), 1e-9)
 
 
+GATE_ERROR = ""
+
+
 def gold_gate(now):
     """The gold ping's own gate, replayed on its own feed so the board can't
     contradict it. None if the feed can't be read."""
+    global GATE_ERROR
     try:
         import dukascopy_python as dk
         import dukascopy_python.instruments as ins
@@ -237,7 +241,8 @@ def gold_gate(now):
         df = df.rename(columns=str.lower).dropna(subset=["open", "high", "low", "close"])
         return read_gate(df, now)
     except Exception as e:
-        print(f"(gold gate data unavailable: {str(e)[:60]})")
+        GATE_ERROR = str(e)[:80].replace("<", "")
+        print(f"(gold gate data unavailable: {GATE_ERROR})")
         return None
 
 
@@ -313,7 +318,8 @@ def data_check(cards, fans, gauges, fg, cal_ok, gate, now):
     if not fg:
         out.append("Fear & Greed: no data, so its dial is missing.")
     if not gate:
-        out.append("Gold gate: no data, so gold's state is UNKNOWN. The ping still decides.")
+        out.append(f"Gold gate: no data ({GATE_ERROR or 'too few sessions'}), so gold's state "
+                   "is UNKNOWN. The ping still decides.")
     return out
 
 
