@@ -980,6 +980,10 @@ def main():
     print(f"\ndashboard written: {path}")
     if not forced and now.hour < 6:
         print(f"{now:%H:%M} UK - page refreshed; too early to ping")
+    elif not forced and now >= ping_uk(now):
+        # GitHub can fire a slot 10h late: a "morning" brief after the gold
+        # verdict would say ARMED about a decision already made
+        print(f"{now:%H:%M} UK - page refreshed; past the gold verdict, too late to ping")
     elif brief_already_sent():
         # unconditional: even a forced/dispatched run never double-pings
         print("page refreshed; brief already on the channel today - no ping")
