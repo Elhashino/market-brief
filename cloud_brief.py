@@ -19,7 +19,8 @@ import requests
 import yfinance as yf
 
 UK = ZoneInfo("Europe/London")
-MARKETS = [("GC=F", "GOLD", ("USD",)), ("DX-Y.NYB", "DOLLAR", ("USD",)),
+NY = ZoneInfo("America/New_York")
+MARKETS =[("GC=F", "GOLD", ("USD",)), ("DX-Y.NYB", "DOLLAR", ("USD",)),
            ("ES=F", "S&P 500", ("USD",)), ("NQ=F", "NASDAQ 100", ("USD",)),
            ("^FTSE", "FTSE 100", ("GBP", "USD")), ("BTC-USD", "BITCOIN", ("USD",))]
 
@@ -129,6 +130,16 @@ def records_panel():
             f"{wrows}</div>")
 
 
+def session_over(symbol, now):
+    """Has today's daily bar finished? FTSE at its 16:35 close, Bitcoin only at
+    UTC midnight, everything else at the 17:00 New York futures break."""
+    if symbol == "BTC-USD":
+        return False
+    if symbol == "^FTSE":
+        return (now.hour, now.minute) >= (16, 35)
+    return now.astimezone(NY).hour >= 17
+
+
 def read_market(symbol):
     df = yf.download(symbol, period="120d", interval="1d", progress=False,
                      auto_adjust=False)
@@ -142,18 +153,30 @@ def read_market(symbol):
     up = delta.clip(lower=0).rolling(14).mean()
     dn = (-delta.clip(upper=0)).rolling(14).mean()
     rsi = float((100 - 100 / (1 + up / dn)).iloc[-1])
-    rng = df["high"] - df["low"]
-    med = float(rng.iloc[-21:-1].median())
-    volx = float(rng.iloc[-1]) / max(med, 1e-9)
     hi20, lo20 = float(df["high"].iloc[-20:].max()), float(df["low"].iloc[-20:].min())
     pos = (float(c.iloc[-1]) - lo20) / max(hi20 - lo20, 1e-9) * 100
-    c1, c6 = float(c.iloc[-2]), float(c.iloc[-7])
+    last = float(c.iloc[-1])
+    # Today's bar is still forming (futures start it the evening before), so
+    # every "yesterday" reading comes from the bars before today.
+    now = datetime.now(UK)
+    dates = df.index.date
+    done = df[dates < now.date()]
+    volx = _range_ratio(done)
+    c1, c6 = float(done["close"].iloc[-1]), float(done["close"].iloc[-6])
     trend = 1 if c1 > c6 else -1 if c1 < c6 else 0
-    last, cL5 = float(c.iloc[-1]), float(c.iloc[-6])
-    nxt = 1 if last > cL5 else -1 if last < cL5 else 0
-    return dict(rsi=rsi, volx=volx, live=volx > 1.0, trend=trend, pos=pos,
-                c1=c1, c6=c6, last=last, nxt=nxt,
-                pdh=float(df["high"].iloc[-2]), pdl=float(df["low"].iloc[-2]))
+    # The next session's setup takes in today's bar once its session is over.
+    fin = df[dates <= now.date()] if session_over(symbol, now) else done
+    fin_last, fin_c5 = float(fin["close"].iloc[-1]), float(fin["close"].iloc[-6])
+    nxt = 1 if fin_last > fin_c5 else -1 if fin_last < fin_c5 else 0
+    return dict(rsi=rsi, volx=volx, nxtx=_range_ratio(fin), live=volx > 1.0,
+                trend=trend, pos=pos, c1=c1, c6=c6, last=last, nxt=nxt,
+                pdh=float(done["high"].iloc[-1]), pdl=float(done["low"].iloc[-1]))
+
+
+def _range_ratio(bars):
+    """The last bar's high-low range against the median of the 20 bars before it."""
+    rng = bars["high"] - bars["low"]
+    return float(rng.iloc[-1]) / max(float(rng.iloc[-21:-1].median()), 1e-9)
 
 
 def reasons(m):
@@ -280,10 +303,10 @@ def next_session(cards, nxt_ev):
         side = ("LONG side" if m["nxt"] > 0 else
                 "SHORT side" if m["nxt"] < 0 else "no side")
         scls = "live" if m["nxt"] > 0 else "news" if m["nxt"] < 0 else "quiet"
-        lean = "likely LIVE" if m["volx"] > 1.0 else "leaning quiet"
+        lean = "likely LIVE" if m["nxtx"] > 1.0 else "leaning quiet"
         rows += (f"<div class='ev'><span class='cur'>{name}</span>"
                  f"<span class='chip {scls}'>{side}</span>"
-                 f"<span>{lean} (latest session {m['volx']:.2f}× median)</span></div>")
+                 f"<span>{lean} (latest session {m['nxtx']:.2f}× median)</span></div>")
     erows = "".join(f"<div class='ev'><span class='t'>{t:%H:%M}</span>"
                     f"<span class='imp {imp.lower()}'>{imp}</span>"
                     f"<span class='cur'>{cur}</span><span>{ti}</span></div>"
